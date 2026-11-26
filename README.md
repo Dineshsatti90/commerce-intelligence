@@ -14,7 +14,7 @@ SQL/dbt analysis of 99,441 real Olist orders, a timing-aware repeat-purchase stu
 2. **Retention savings are not established:** raw 90-day repeat rates are 1.77% after a late first order versus 2.03% on time. The timing-aware model estimates a −0.16 percentage-point difference on days 31–90, with a 95% interval of −0.44 to +0.12.
 3. **Investigate MA, CE and BA first:** first-order late rates are 18.4%, 16.5% and 13.9% among states with at least 500 eligible customers. Pair operational remediation with a prospective customer-outcome experiment.
 
-![Project preview](reports/overview.svg)
+![Project preview](docs/screenshots/overview.jpg)
 
 **Stack:** Python · SQL · DuckDB · dbt · Streamlit · statsmodels · optional local/API LLM.
 
