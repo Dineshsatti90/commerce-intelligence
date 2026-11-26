@@ -6,7 +6,7 @@
 
 SQL/dbt analysis of 99,441 real Olist orders, a timing-aware repeat-purchase study and an evaluated, source-verified AI query router.
 
-**Dashboard:** `streamlit run app.py` — runs on committed aggregates without a warehouse download.
+**[Open the live dashboard](https://dineshsatti90-commerce-intelligence.streamlit.app/)**
 
 ## Three findings
 
