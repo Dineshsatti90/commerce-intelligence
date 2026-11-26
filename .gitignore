@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+data/raw/
+warehouse/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+reports/ai_runs/
+reports/fct_orders.csv
