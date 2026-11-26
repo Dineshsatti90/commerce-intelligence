@@ -1,0 +1,9 @@
+// Import reports/fct_orders.csv and the mart CSVs through Power Query.
+// Keep marts disconnected; do not create many-to-many relationships.
+Orders = COUNTROWS(fct_orders)
+Delivered Orders = CALCULATE([Orders], fct_orders[order_status] = "delivered")
+Delivered GMV BRL = CALCULATE(SUM(fct_orders[merchandise_value_brl]), fct_orders[order_status] = "delivered")
+Eligible Repeat Customers = SUM(mart_retention[eligible_customers])
+Repeat Customers 90d = SUM(mart_retention[repeat_customers])
+Repeat Rate 90d = DIVIDE([Repeat Customers 90d], [Eligible Repeat Customers])
+Late Delivery Rate = DIVIDE(SUM(mart_monthly[late_orders]), SUM(mart_monthly[delivery_eligible_orders]))

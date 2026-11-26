@@ -1,0 +1,16 @@
+name: commerce_intelligence
+version: '1.0.0'
+config-version: 2
+profile: commerce
+model-paths: [models]
+test-paths: [tests]
+vars:
+  observation_end: '2018-09-01'
+models:
+  commerce_intelligence:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    marts:
+      +materialized: table

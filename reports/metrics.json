@@ -1,0 +1,23 @@
+{
+  "orders": 99421,
+  "delivered_orders": 96478,
+  "delivered_gmv_brl": 13221498.11,
+  "eligible_90d_customers": 75703,
+  "repeat_90d_customers": 1519,
+  "repeat_90d_rate": 0.020065255009708995,
+  "delivery_review_comparison": [
+    [
+      false,
+      89936,
+      89443,
+      4.290386055923885
+    ],
+    [
+      true,
+      6534,
+      6381,
+      2.270490518727472
+    ]
+  ],
+  "top_category": "health_beauty"
+}

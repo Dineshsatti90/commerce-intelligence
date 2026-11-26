@@ -1,0 +1,5 @@
+step,stage,orders
+1,Purchased,99421
+2,Approved,99280
+3,Handed to carrier,97643
+4,Delivered,96461

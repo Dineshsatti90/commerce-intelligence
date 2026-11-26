@@ -1,0 +1,7 @@
+commerce:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "{{ env_var('COMMERCE_DB', '../warehouse/commerce.duckdb') }}"
+      threads: 4
