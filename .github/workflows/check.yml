@@ -8,4 +8,14 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
       - run: pip install -r requirements.txt
+      - run: pip install ruff
+      - run: ruff format --check .
       - run: python -m pytest tests -q
+      - name: Create synthetic SQL boundary fixture
+        run: python tests/build_fixture.py warehouse/ci.duckdb
+      - name: Build dbt models and run data tests
+        env:
+          COMMERCE_DB: "${{ github.workspace }}/warehouse/ci.duckdb"
+          DO_NOT_TRACK: '1'
+        run: dbt build --project-dir dbt --profiles-dir dbt
+      - run: python tests/build_fixture.py warehouse/ci.duckdb --verify

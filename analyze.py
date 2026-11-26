@@ -1,33 +1,70 @@
 """Export BI tables, an observed-results memo and a prospective experiment design."""
+
 from pathlib import Path
 import json
 import math
 import duckdb
 from scipy.stats import norm
-ROOT=Path(__file__).resolve().parent
 
-def sample_size(p,absolute_mde,alpha=.05,power=.8):
- if not 0<p<1 or not 0<absolute_mde<1-p: raise ValueError('Invalid baseline or MDE')
- p1=p+absolute_mde; pooled=(p+p1)/2
- return math.ceil(((norm.ppf(1-alpha/2)*math.sqrt(2*pooled*(1-pooled))+
-  norm.ppf(power)*math.sqrt(p*(1-p)+p1*(1-p1)))**2)/(absolute_mde**2))
+ROOT = Path(__file__).resolve().parent
 
-def run():
- out=ROOT/'reports'; out.mkdir(exist_ok=True)
- with duckdb.connect(str(ROOT/'warehouse/commerce.duckdb'),read_only=True) as db:
-  for table in ['fct_orders','mart_monthly','mart_retention','mart_delivery','mart_fulfillment','mart_categories']:
-   path=(out/(table+'.csv')).as_posix().replace("'","''")
-   db.execute(f"copy (select * from {table}) to '{path}' (header,delimiter ',')")
-  summary=db.execute("select count(*), count(*) filter(where order_status='delivered'),sum(merchandise_value_brl) filter(where order_status='delivered') from fct_orders").fetchone()
-  eligible,repeats=db.execute('select sum(eligible_customers),sum(repeat_customers) from mart_retention').fetchone()
-  reviews=db.execute('select is_late,sum(orders),sum(reviewed_orders),sum(avg_review_score*reviewed_orders)/sum(reviewed_orders) from mart_delivery group by 1 order by 1').fetchall()
-  top=db.execute('select category,delivered_gmv_brl from mart_categories order by 2 desc limit 1').fetchone()
- baseline=repeats/eligible
- metrics={'orders':summary[0],'delivered_orders':summary[1],'delivered_gmv_brl':float(summary[2]),
-  'eligible_90d_customers':eligible,'repeat_90d_customers':repeats,'repeat_90d_rate':baseline,
-  'delivery_review_comparison':reviews,'top_category':top[0]}
- (out/'metrics.json').write_text(json.dumps(metrics,indent=2,default=str))
- memo=f'''# Delivery experience and repeat purchase: decision memo
+
+def sample_size(p: float, absolute_mde: float, alpha: float = 0.05, power: float = 0.8) -> int:
+    if not 0 < p < 1 or not 0 < absolute_mde < 1 - p:
+        raise ValueError("Invalid baseline or MDE")
+    p1 = p + absolute_mde
+    pooled = (p + p1) / 2
+    return math.ceil(
+        (
+            (
+                norm.ppf(1 - alpha / 2) * math.sqrt(2 * pooled * (1 - pooled))
+                + norm.ppf(power) * math.sqrt(p * (1 - p) + p1 * (1 - p1))
+            )
+            ** 2
+        )
+        / (absolute_mde**2)
+    )
+
+
+def run() -> None:
+    out = ROOT / "reports"
+    out.mkdir(exist_ok=True)
+    with duckdb.connect(str(ROOT / "warehouse/commerce.duckdb"), read_only=True) as db:
+        for table in [
+            "fct_orders",
+            "mart_monthly",
+            "mart_retention",
+            "mart_delivery",
+            "mart_fulfillment",
+            "mart_categories",
+        ]:
+            path = (out / (table + ".csv")).as_posix().replace("'", "''")
+            db.execute(f"copy (select * from {table}) to '{path}' (header,delimiter ',')")
+        summary = db.execute(
+            "select count(*), count(*) filter(where order_status='delivered'),sum(merchandise_value_brl) filter(where order_status='delivered') from fct_orders"
+        ).fetchone()
+        eligible, repeats = db.execute(
+            "select sum(eligible_customers),sum(repeat_customers) from mart_retention"
+        ).fetchone()
+        reviews = db.execute(
+            "select is_late,sum(orders),sum(reviewed_orders),sum(avg_review_score*reviewed_orders)/sum(reviewed_orders) from mart_delivery group by 1 order by 1"
+        ).fetchall()
+        top = db.execute(
+            "select category,delivered_gmv_brl from mart_categories order by 2 desc limit 1"
+        ).fetchone()
+    baseline = repeats / eligible
+    metrics = {
+        "orders": summary[0],
+        "delivered_orders": summary[1],
+        "delivered_gmv_brl": float(summary[2]),
+        "eligible_90d_customers": eligible,
+        "repeat_90d_customers": repeats,
+        "repeat_90d_rate": baseline,
+        "delivery_review_comparison": reviews,
+        "top_category": top[0],
+    }
+    (out / "metrics.json").write_text(json.dumps(metrics, indent=2, default=str))
+    memo = f"""# Delivery experience and repeat purchase: decision memo
 
 ## Observed results
 - {summary[0]:,} orders purchased before 2018-09-01; {summary[1]:,} have delivered status.
@@ -43,10 +80,11 @@ Investigate delivery experience with operations and propose a randomized custome
 
 ## Limitations
 Historical 2016–2018 release, conservative cutoff 2018-09-01. The stored delivered status is from the source snapshot, not a reconstructed historical event stream. No clickstream, ad costs, cancellations over time, contribution margins or randomized treatments exist. No claimed realized savings. Tiny end-of-release months are not used to infer business collapse.
-'''
- (out/'decision_memo.md').write_text(memo,encoding='utf-8')
- mde=.005; n=sample_size(baseline,mde)
- experiment=f'''# Prospective experiment: post-purchase delivery communication
+"""
+    (out / "decision_memo.md").write_text(memo, encoding="utf-8")
+    mde = 0.005
+    n = sample_size(baseline, mde)
+    experiment = f"""# Prospective experiment: post-purchase delivery communication
 
 Status: DESIGN ONLY. No treatment was assigned and no uplift was observed.
 
@@ -61,18 +99,26 @@ For first-time customers, prior purchase spend is structurally zero. Do not pret
 
 ## Projected value
 Any opportunity estimate must be `eligible future customers × assumed incremental purchase probability × assumed contribution per purchase − intervention cost`. Incrementality, margin and intervention cost are unavailable in this release, so a monetary benefit is not reported.
-'''
- (out/'experiment_memo.md').write_text(experiment,encoding='utf-8')
- print(json.dumps(metrics,indent=2,default=str))
+"""
+    (out / "experiment_memo.md").write_text(experiment, encoding="utf-8")
+    print(json.dumps(metrics, indent=2, default=str))
 
-def cuped(y,x):
- import numpy as np
- y=np.asarray(y,dtype=float); x=np.asarray(x,dtype=float)
- if len(x)!=len(y) or len(x)<3: raise ValueError('Need aligned observations')
- if not np.isfinite(x).all() or not np.isfinite(y).all(): raise ValueError('Nonfinite input')
- variance=np.var(x,ddof=1)
- if variance<=0: raise ValueError('Pre-period covariate has no variance')
- theta=np.cov(y,x,ddof=1)[0,1]/variance
- return y-theta*(x-x.mean())
 
-if __name__=='__main__': run()
+def cuped(y, x):
+    import numpy as np
+
+    y = np.asarray(y, dtype=float)
+    x = np.asarray(x, dtype=float)
+    if len(x) != len(y) or len(x) < 3:
+        raise ValueError("Need aligned observations")
+    if not np.isfinite(x).all() or not np.isfinite(y).all():
+        raise ValueError("Nonfinite input")
+    variance = np.var(x, ddof=1)
+    if variance <= 0:
+        raise ValueError("Pre-period covariate has no variance")
+    theta = np.cov(y, x, ddof=1)[0, 1] / variance
+    return y - theta * (x - x.mean())
+
+
+if __name__ == "__main__":
+    run()

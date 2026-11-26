@@ -1,0 +1,50 @@
+{
+  "eligible_customers": 75703,
+  "missing_delivery_exposure": 2,
+  "groups": [
+    {
+      "delivery": "On time",
+      "customers": 70002,
+      "repeat_customers": 1418,
+      "repeat_rate_90d": 0.020256564098168624,
+      "ci95_low": 0.019238991019163612,
+      "ci95_high": 0.02132678748792232
+    },
+    {
+      "delivery": "Late",
+      "customers": 5699,
+      "repeat_customers": 101,
+      "repeat_rate_90d": 0.017722407439901736,
+      "ci95_low": 0.014607524727605615,
+      "ci95_high": 0.02148701872183838
+    }
+  ],
+  "landmark_exclusions": {
+    "not_delivered_within_30d": 4276,
+    "repeat_by_30d": 1047,
+    "note": "Reasons can overlap; unique included count is in the model."
+  },
+  "adjusted_model": {
+    "customers": 70427,
+    "repeat_events": 449,
+    "controls": [
+      "state",
+      "10 largest product categories + other",
+      "purchase quarter",
+      "log(1 + order value)"
+    ],
+    "model": "binomial GLM with HC1 covariance; day-30 landmark",
+    "converged": true,
+    "adjusted_risk_difference": -0.0015855949534009622,
+    "risk_difference_ci95": [
+      -0.004380299917645491,
+      0.0012091100108435665
+    ],
+    "late_delivery_odds_ratio": 0.7519047650313522,
+    "odds_ratio_ci95": [
+      0.4119802228733308,
+      1.3723007666090836
+    ]
+  },
+  "decision": "Do not book retention savings from delivery improvements: the adjusted day-31\u201390 repeat difference is -0.16 percentage points (95% CI -0.44 to +0.12). Prioritize an operational review in MA, CE, BA based on first-order lateness, and test customer outcomes prospectively."
+}
