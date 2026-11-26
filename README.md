@@ -1,5 +1,7 @@
 # Commerce Intelligence
 
+[![Checks](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml/badge.svg)](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml)
+
 Marketplace analytics that connects delivery experience, repeat purchase and a prospective experiment decision using the complete public Olist release.
 
 **Business question:** where should a marketplace investigate delivery experience and repeat purchase, and what should it test next?
@@ -111,4 +113,4 @@ The LLM evaluation is **not run until a model is configured**. The included 30 q
 
 ## Walkthrough
 
-Demo: overview → repeat cohorts → delivery comparison → SQL evidence → experiment memo. Use the actual run's metrics in your resume. Do not claim saved revenue or live A/B uplift. Include the model name and evaluated results only after a real model run. Generated CSVs and source manifests make findings inspectable without requiring a hosted database.
+For a short review, follow the dashboard overview, mature repeat cohorts, delivery comparison, SQL evidence explorer and prospective experiment memo. Generated CSVs and source manifests make the findings inspectable without a hosted database. The results are historical observations; no realized savings or live experiment uplift is claimed.
