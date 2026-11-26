@@ -13,6 +13,7 @@ Use Python 3.10+ and run from the repository root. A tested reference environmen
 | `python pipeline.py build` | Execute dbt models and data tests |
 | `python pipeline.py all` | Run those steps in sequence |
 | `python analyze.py` | Export marts and regenerate findings/experiment memos |
+| `python delivery_study.py` | Regenerate the timing-aware delivery/retention study and final decision memo |
 | `python make_overview.py` | Regenerate the README SVG from observed metrics |
 | `python -m pytest tests -q` | Run focused Python regressions |
 | `python copilot.py --evaluate` | Evaluate configured model, or record missing-model status |
@@ -25,6 +26,10 @@ Activate the virtual environment before invoking dbt; `pipeline.py` looks for it
 Set `LLM_BASE_URL` to a trusted OpenAI-compatible API base ending in `/v1`, `LLM_MODEL` to an installed/available model identifier and `LLM_API_KEY` if the provider requires authentication. The endpoint must support chat completions and JSON-object response mode. Environment files are examples, not automatically loaded. Requests can incur provider charges.
 
 Only approved aggregate query outputs are submitted by the evidence workflow. Never put credentials, private customer data or unreviewed tables in its catalog. The offline evidence explorer makes no model calls.
+
+The recorded local run uses `LLM_MODEL=qwen2.5:3b`, `LLM_BASE_URL=http://127.0.0.1:11434/v1` and `LLM_BACKEND=ollama`. Ollama must already be installed/running with that model. The native adapter requests JSON, temperature 0, seed 42, 8,192 context tokens and a 600-token output cap. No paid key is required. Preserve previous runs before evaluating a different prompt/model.
+
+The dashboard defaults to committed aggregate extracts. `COMMERCE_DEMO_MODE=1` forces the copilot to use those extracts even when a local warehouse exists. CI runs `tests/test_app.py` and a separate labeled synthetic dbt fixture; never mix fixture outputs into the reported real-data findings.
 
 ## Troubleshooting
 

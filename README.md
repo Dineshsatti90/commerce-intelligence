@@ -2,115 +2,78 @@
 
 [![Checks](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml/badge.svg)](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml)
 
-Marketplace analytics that connects delivery experience, repeat purchase and a prospective experiment decision using the complete public Olist release.
+**Which delivery problems deserve action—and do the data support a retention business case?**
 
-**Business question:** where should a marketplace investigate delivery experience and repeat purchase, and what should it test next?
+SQL/dbt analysis of 99,441 real Olist orders, a timing-aware repeat-purchase study and an evaluated, source-verified AI query router.
 
-**Stack:** Python · SQL · DuckDB · dbt · Streamlit · Power BI exports · optional OpenAI-compatible LLM.
+**Dashboard:** `streamlit run app.py` — runs on committed aggregates without a warehouse download.
 
-## Results at a glance
+## Three findings
 
-| Observed measure | Result | Interpretation |
-| --- | ---: | --- |
-| Source orders | 99,441 | Complete version-2 order table |
-| Orders in analysis window | 99,421 | Purchases before 1 September 2018 |
-| Delivered merchandise GMV | R$13,221,498.11 | Item prices on delivered orders; not platform revenue |
-| Customers with complete 90-day follow-up | 75,703 | First delivered purchase observed in the release |
-| Customers purchasing again within 90 days | 1,519 / 2.01% | Repeat purchase, not contractual churn |
-| Mean review score, on-time / late | 4.29 / 2.27 | Latest review per order; association, not a causal estimate |
+1. **Delivery experience differs sharply:** mean review scores are 2.27 for late deliveries versus 4.29 on time.
+2. **Retention savings are not established:** raw 90-day repeat rates are 1.77% after a late first order versus 2.03% on time. The timing-aware model estimates a −0.16 percentage-point difference on days 31–90, with a 95% interval of −0.44 to +0.12.
+3. **Investigate MA, CE and BA first:** first-order late rates are 18.4%, 16.5% and 13.9% among states with at least 500 eligible customers. Pair operational remediation with a prospective customer-outcome experiment.
 
-**Decision:** investigate delivery experience with operations, then evaluate proactive delivery communication in a preregistered customer-level experiment. This analysis does not claim an intervention generated savings or uplift.
+![Project preview](reports/overview.svg)
 
-Real multi-table Olist data, a one-row-per-order warehouse, mature 90-day customer cohorts, a fulfillment funnel and an evidence-linked LLM interface. See [observed findings](reports/decision_memo.md) and [experiment proposal](reports/experiment_memo.md). Row counts and download hashes are in `reports/` after running.
+**Stack:** Python · SQL · DuckDB · dbt · Streamlit · statsmodels · optional local/API LLM.
 
-![Observed Olist analysis](reports/overview.svg)
+[Decision memo](reports/decision_memo.md) · [Experiment design](reports/experiment_memo.md) · [State priorities](reports/state_delivery_priorities.csv)
 
-## Quick start
+## Measured AI performance
 
-Python 3.10+; Windows PowerShell (bash users substitute activation command):
+The copilot routes questions to six reviewed SQL queries, selects source observations and checks every cited value. It never executes model-written SQL. Offline mode runs the same catalog on committed aggregate extracts.
 
-```powershell
+| Local Qwen 2.5 3B, 30 regression questions | Result |
+| --- | ---: |
+| Correct query/refusal routing | 86.7% |
+| Correct route plus validated output/refusal | 50.0% |
+| Refusal of 12 unsupported questions | 66.7% |
+
+The initial prompt achieved only 43.3% routing. A revised prompt clarifies that the router retrieves existing data. Valid requests can still produce rejected values, and unsupported requests can be misrouted. This is an evaluated prototype. [Full run](reports/ai_evaluation.json) · [Examples and failures](docs/AI_EVALUATION.md) · [Initial run](eval/runs/qwen_initial.json).
+
+## Run the demo
+
+```bash
 python -m venv .venv
-.venv/Scripts/Activate.ps1
+# Windows: .venv/Scripts/Activate.ps1
+# macOS/Linux: source .venv/bin/activate
 python -m pip install -r requirements.txt
-python pipeline.py all
-python analyze.py
-python copilot.py --evaluate
-python -m pytest tests -q
 streamlit run app.py
 ```
 
-On macOS/Linux, activate with `source .venv/bin/activate`. Run commands from the repository root. Internet is needed for initial package/data downloads; the analytical dashboard works locally after the pipeline completes. No API key is needed for the offline evidence explorer.
+## Rebuild the real-data analysis
 
-`requirements.lock.txt` records the exact environment used for the checked-in analysis. Install it instead of `requirements.txt` to reproduce those dependency versions.
+```bash
+python pipeline.py all
+python analyze.py
+python delivery_study.py
+python make_overview.py
+python -m pytest tests -q
+```
 
-`pipeline.py all` downloads the complete version-2 ZIP (~100k orders and 1m geolocation points; these are not 1m transactions), fingerprints files, ingests every CSV and executes `dbt build`. Downloading requires internet. Do not upload raw data, databases or credentials to GitHub. The original data license is separate from the code: see [Olist on Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), attributed to Olist, CC BY-NC-SA 4.0; verify source terms before redistribution or commercial reuse. Download URL is pinned to dataset version 2.
+The full pinned release includes 1,000,163 coordinate observations; those are not additional transactions. Activate the environment so `dbt` is on PATH. Model setup and `python copilot.py --evaluate` are documented in [operations](docs/OPERATIONS.md).
 
-## Architecture
+## Architecture and validation
 
 ```mermaid
 flowchart LR
-  A[Versioned Olist ZIP] --> B[Raw DuckDB tables]
-  B --> C[dbt staging and grain-safe aggregates]
-  C --> D[Order fact and analytical marts]
-  D --> E[Streamlit and Power BI exports]
-  D --> F[Allowlisted SQL evidence]
-  F --> G[LLM selects observations]
-  G --> H[Source-cell validation and citations]
+ A[Versioned Olist ZIP] --> B[DuckDB and typed dbt sources]
+ B --> C[Order-grain aggregates and analytical marts]
+ C --> D[Dashboard and Power BI CSVs]
+ C --> E[Timing-aware adjusted study]
+ C --> F[Reviewed SQL and LLM observation selection]
+ F --> G[Value checks and source citations]
 ```
 
-## Analytical contract
-
-- Currency BRL; item price is merchandise GMV, not Olist revenue, profit or refunds. Freight and payment values remain separate.
-- Payments and items aggregate independently before joining; latest review per order; ZIP points aggregate before joining. Tests reconcile order counts and delivered GMV to raw-grain controls.
-- Historical cutoff: purchases before 2018-09-01; this deliberately avoids the tiny incomplete tail. Source status is snapshot status; this is not a historical as-of reconstruction of operations.
-- Customer identity uses `customer_unique_id`, not the order-specific `customer_id`. Repeat purchase requires 90 full days of follow-up; no lifetime-value or contractual-churn claims.
-- Cohorts begin at first purchase observed in this release, not necessarily a person's first-ever Olist purchase; the beginning of the source window is left-censored.
-- No web events exist: the funnel is fulfillment timestamp completion, not visitor-to-checkout conversion. Categories can overlap orders; category counts are not additive.
-- The experiment is prospective. CUPED code is supplied and tested, but the memo explains why zero pre-period spend for first-time customers makes CUPED unsuitable for that population.
-
-## AI integration and evaluation status
-
-Set `LLM_MODEL`, `LLM_BASE_URL` and, if needed, `LLM_API_KEY` in your shell; `.env.example` documents them, but `.env` is not auto-loaded. Any compatible JSON-mode chat endpoint can be configured, including a compatible local server. No provider key is bundled.
-
-The model routes a question to six reviewed queries or refuses it. It does **not** execute free-form generated SQL. SQL owns all calculations; the model selects source cells; the renderer creates statements and row/column citations. Unexpected prose and altered numbers are rejected. This intentionally trades flexibility for auditability. It is constrained natural-language-to-query, not an unrestricted SQL agent.
-
-Run `python copilot.py --evaluate` against 30 authored regression questions (18 supported, 12 unsupported including injection). The report records routing accuracy, end-to-end pass rate and failures. Without a model it explicitly records **not run**, never a fabricated score. This small developer-visible set is not an independent benchmark; extend it with unseen paraphrases before making general claims. Citation checking does not prove that the selected observation answers the user's question: human relevance review is still required.
-
-## Power BI
-
-Streamlit is the runnable dashboard. Import `reports/*.csv` into Power BI; `bi/measures.dax` contains starter measures. Use Overview, Delivery, Retention pages; show the observation window prominently. Marts remain separate aggregate tables; do not join them to order facts on month/state and accidentally duplicate results. A native `.pbix` is not included.
-
-## Repository guide
-
-| Location | Purpose |
-| --- | --- |
-| `pipeline.py` | Versioned download, SHA256 manifest, raw ingest and dbt execution |
-| `dbt/models/staging/` | Typed source models |
-| `dbt/models/intermediate/` | Order-level aggregates and unique ZIP dimensions |
-| `dbt/models/marts/` | Order fact, retention, fulfillment, delivery and category marts |
-| `analyze.py` | Observed-results exports, decision memo and experiment power calculation |
-| `copilot.py` / `eval/` | Constrained model integration and 30-case evaluation harness |
-| `app.py` / `bi/` | Interactive dashboard and Power BI measures |
-| `reports/` | Reproducible findings, source manifest and aggregate extracts |
-| `tests/` | Citation integrity, injection boundary and statistical utilities |
-
-## Validation
-
-The local reference run passed **21 dbt data tests** and **4 Python regression tests**. dbt checks unique identifiers, foreign keys, nonnegative values, cohort bounds, order grain and delivered-GMV reconciliation. Streamlit AppTest also exercised the dashboard and evidence selector. CI runs the small Python suite without downloading the dataset; a fresh full-data reproduction requires the pipeline command above.
-
-The LLM evaluation is **not run until a model is configured**. The included 30 questions are a developer-authored regression set, not an independent performance benchmark. No model accuracy or time-saving claim is made.
+CI runs committed Streamlit AppTests, metric tests and a **dbt build with 21 data tests on a labeled synthetic boundary fixture**. The fixture checks day-90/day-91 outcomes, immature cohorts, latest reviews and multi-item/payment fan-out. Real findings use the full Olist release. [Workflow](.github/workflows/check.yml) · [Tests](tests).
 
 ## Documentation
 
-- [Data dictionary and metric definitions](docs/DATA_DICTIONARY.md)
-- [Methodology and analytical limitations](docs/METHODOLOGY.md)
-- [Reproduction, AI configuration and troubleshooting](docs/OPERATIONS.md)
-- [Observed-results decision memo](reports/decision_memo.md)
-- [Prospective experiment design](reports/experiment_memo.md)
-- [Data attribution and publication boundaries](DATA_LICENSE.md)
-- [Contribution guide](CONTRIBUTING.md)
+- [Data dictionary](docs/DATA_DICTIONARY.md), [methodology](docs/METHODOLOGY.md) and [operations](docs/OPERATIONS.md)
+- [Power BI measures](bi/measures.dax); detailed order exports are generated locally
+- [Source fingerprints](reports/source_manifest.json), [MIT code license](LICENSE) and [data terms](DATA_LICENSE.md)
 
-## Walkthrough
+## Limitations
 
-For a short review, follow the dashboard overview, mature repeat cohorts, delivery comparison, SQL evidence explorer and prospective experiment memo. Generated CSVs and source manifests make the findings inspectable without a hosted database. The results are historical observations; no realized savings or live experiment uplift is claimed.
+Historical 2016–2018 snapshot; purchase cutoff 2018-09-01. Status is from the release, not an event-sourced historical state. First observed purchase may not be first-ever purchase. GMV is merchandise value, not platform revenue. The funnel measures fulfillment, not browsing. Delivery comparisons are observational; the day-30 landmark changes the population and cannot remove all confounding. Cohort charts hide groups below 100 customers by default; totals retain them. Seller IDs are anonymous and carrier identities are absent. The proposed experiment has not run. AI questions are a developer-visible regression set, not a held-out benchmark; value checking does not prove answer relevance. Public demos use recorded AI outputs unless explicitly configured. Native Power BI `.pbix` is not included.
