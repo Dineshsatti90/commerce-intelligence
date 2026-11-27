@@ -11,3 +11,5 @@ Open the [live dashboard](https://dineshsatti90-commerce-intelligence.streamlit.
 | 2:10–2:30 | AI evaluation | Contrast 3B and 8B results, the fresh set and failures. Valid numbers can come from the wrong query; the configured flow requires scope review. |
 
 Interview close: “I would fund a measured customer-experience test, not forecast retention revenue from this observational association.”
+
+[Short silent preview animation](screenshots/walkthrough.gif). This is a sequence of actual dashboard screenshots, not a narrated video. The timing table above is a 2–3 minute presentation guide.

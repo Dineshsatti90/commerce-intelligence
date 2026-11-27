@@ -37,3 +37,5 @@ python copilot.py --evaluate --cases eval/fresh_questions.json --output eval/run
 All outputs, raw model JSON, questions, expected routes, SQL/result hashes and errors are preserved in [runs](../eval/runs). Earlier pre-schema runs remain for comparison; schema runs perform worse on some refusal metrics and are not advertised as a universal improvement.
 
 Structured output follows [Ollama’s official schema documentation](https://docs.ollama.com/capabilities/structured-outputs).
+
+The models differ in architecture and training as well as size. This comparison tests two installed implementations; it does not isolate parameter count as the cause of the performance difference.
