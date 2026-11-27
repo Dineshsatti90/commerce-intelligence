@@ -17,6 +17,10 @@ RULES = (
     ("assert_as_fact", r"\bstate\b.{0,60}\bas (a )?fact\b"),
     ("executable_request", r"\b(drop\s+table|read_csv\s*\(|execute\s+(select|sql)|run\s+select)"),
     ("credential_request", r"\b(api[ _-]?keys?|credentials?|environment variables?|secrets?)\b"),
+    (
+        "falsify_values",
+        r"\b(replace|change|alter)\b.{0,80}\b(source value|reported number)\b",
+    ),
 )
 
 

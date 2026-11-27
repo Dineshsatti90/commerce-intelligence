@@ -38,6 +38,8 @@ The keyword preflight blocked **0** of the first-pass v2 questions: it had learn
 | llama3:8b | v1_reused | 20 | 90.0% | 90.0% | 90.0% | 95.0% |
 | llama3:8b | v2_first_pass | 20 | 70.0% | 70.0% | 60.0% | 70.0% |
 
+The Policy replay pass column was calculated with the earlier `request_policy.py` version.
+
 ## Protocol and interpretation
 The original 30 questions and previous 20-question fresh set are now reused regression sets. Twenty v2 questions were frozen before these first-pass runs. All are developer-authored, not independent benchmarks. [Protocol and source hashes](../eval/reference_protocol_v2.json), [new questions](../eval/fresh_questions_v2.json), [source snapshots](../eval/sources), [runtime model digests](../eval/model_runtime.json).
 

@@ -1,5 +1,5 @@
 {
-  "gate_source_sha256": "ca82510a015734e36b025f87e76cf30188d3ab1013f35660eaccc5ffad8dc98a",
+  "gate_source_sha256": "207bcb13caa67b0fc835005e6cbb46780511c8d8de9e532eeb542f42cd4e60f0",
   "method": "Deterministic data-contract allowlist + documented-limitation refusals; no model or network.",
   "caveat": "The gate was tuned on the regression, v1 and v2 sets. The v3 set was written and fingerprinted before the gate code, but by the same author, who knew those questions while writing rules. Treat v3 as an upper bound, not an independent generalization estimate. Score blind questions written by someone else with --cases.",
   "gate_only": {
