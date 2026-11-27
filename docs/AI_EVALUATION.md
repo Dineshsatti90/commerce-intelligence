@@ -2,6 +2,32 @@
 
 The model selects row/column references. Python resolves the exact source value and citation. The model cannot supply copied numbers or dates. Correct references can still be irrelevant, so routing and relevance remain separate concerns.
 
+## Scope gate: refuse by data contract, not by attack phrasing
+
+The keyword preflight blocked **0** of the first-pass v2 questions: it had learned specific attack wordings, not the boundary of the data. [scope_gate.py](../scope_gate.py) inverts the logic. A question must mention something the catalog measures, and it is refused if it asks for anything the data contract documents as unavailable: profit, refunds, ads, browsing, forecasts, causal claims, experiment results, personal data, carrier identities, single-entity filters, external execution or instruction changes. It runs before any model call, needs no network or model download, and every refusal names the contract family it hit.
+
+**Gate alone**
+
+| Set | Role | N | Unsupported refused | Supported falsely refused |
+|---|---|---:|---:|---:|
+| regression | tuning (seen) | 30 | 100% | 0% |
+| v1_reused | tuning (seen) | 20 | 100% | 0% |
+| v2_first_pass | tuning (seen) | 20 | 100% | 0% |
+| holdout_v3 | held out; same author as gate | 24 | 100% | 0% |
+
+**Replay of the recorded raw-model runs through the gate** (refused questions become refusals; every other recorded model output is unchanged)
+
+| Model | Set | Route + valid references | Unsupported refusal | Wrong route shown |
+|---|---|---:|---:|---:|
+| qwen2.5:3b | regression | 60% → **93%** | 17% → **100%** | 11 → **1** |
+| qwen2.5:3b | v1_reused | 50% → **95%** | 10% → **100%** | 8 → **0** |
+| qwen2.5:3b | v2_first_pass | 45% → **85%** | 20% → **100%** | 8 → **0** |
+| llama3:8b | regression | 90% → **100%** | 75% → **100%** | 3 → **0** |
+| llama3:8b | v1_reused | 90% → **95%** | 90% → **100%** | 2 → **1** |
+| llama3:8b | v2_first_pass | 70% → **90%** | 60% → **100%** | 6 → **2** |
+
+**Read these numbers carefully.** The gate was tuned on the regression, v1 and v2 sets, so 100% there is expected. The [v3 held-out set](../eval/holdout_questions_v3.json) was written and fingerprinted before the gate code, but by the same author, who knew those questions while writing the rules. Its 24/24 is an upper bound, not an independent estimate. The real test is questions written blind by someone else: `python evaluate_gate.py --cases their_questions.json`. The remaining wrong-route answers are supported questions sent to a neighbouring query (for example `retention` instead of `retention_summary`), which a scope gate cannot catch. Full decisions: [scope_gate_evaluation.json](../reports/scope_gate_evaluation.json).
+
 ## Current raw-model results
 | Model | Set | N | Correct route | Route + valid references | Unsupported refusal | Policy replay pass |
 |---|---|---:|---:|---:|---:|---:|
