@@ -13,6 +13,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from copy import deepcopy
 from request_policy import preflight_reason
+from scope_gate import scope_decision
 from datetime import datetime, timezone
 import urllib.request
 import duckdb
@@ -127,7 +128,7 @@ def llm(messages: list[dict], schema: dict) -> dict:
 
 
 def route(question: str, *, enforce_policy: bool = True) -> str:
-    if enforce_policy and preflight_reason(question):
+    if enforce_policy and (preflight_reason(question) or not scope_decision(question)[0]):
         return "unsupported"
     response = llm(
         [
@@ -231,6 +232,15 @@ def answer(question: str, *, query_id: str | None = None, enforce_policy: bool =
             "rule": reason,
             "message": "This request asks for unsupported assertions or instruction overrides.",
         }
+    if enforce_policy and query_id is None:
+        allowed, scope_reason = scope_decision(question)
+        if not allowed:
+            return {
+                "status": "unsupported",
+                "refusal_origin": "scope_gate",
+                "rule": scope_reason,
+                "message": "The approved data and query catalog cannot answer this question.",
+            }
     query_id = query_id or route(question, enforce_policy=enforce_policy)
     if query_id == "unsupported":
         return {
@@ -285,7 +295,7 @@ def evaluate(
         "temperature": 0,
         "seed": 42 if os.environ.get("LLM_BACKEND") == "ollama" else None,
         "prompt_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "policy_mode": "model_only" if model_only else "preflight_then_model",
+        "policy_mode": "model_only" if model_only else "preflight_scope_gate_then_model",
         "policy_source_sha256": hashlib.sha256((ROOT / "request_policy.py").read_bytes()).hexdigest(),
         "benchmark": "First-pass v2 questions; developer-authored and not independent"
         if "v2" in cases_path.name

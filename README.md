@@ -2,26 +2,17 @@
 
 [![Checks](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml/badge.svg)](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml)
 
-**Late deliveries had much worse reviews. Repeat purchasing told a less certain story.**
+**Late deliveries cut review scores almost in half, but across 70,000 customers there's no detectable hit to repeat purchases.**
 
 [Live dashboard](https://dineshsatti90-commerce-intelligence.streamlit.app/) · [Two-minute walkthrough](docs/WALKTHROUGH.md) · [Run & methodology](docs/PROJECT_GUIDE.md)
 
-- **Customer experience:** mean reviews were 2.27 for late deliveries versus 4.29 on time.
-- **Retention uncertainty:** across 70,427 landmark customers, the adjusted difference was −0.16pp (95% CI −0.45 to +0.13).
-- **Decision:** investigate MA, CE and BA delivery operations, then test customer outcomes prospectively.
+- **Reviews collapse when orders are late:** 2.27 average stars versus 4.29 on time, across 99,441 real Olist orders.
+- **Retention is a different story:** a timing-aware model puts the repeat-purchase difference at −0.16 points (95% CI −0.45 to +0.13). That rules out booking retention savings, but it doesn't prove delivery is harmless.
+- **Where to act:** MA, CE and BA have the highest first-order late rates (18.4%, 16.5%, 13.9%). Fix operations there, then run a proper experiment on customer outcomes.
 
 <img src="docs/screenshots/walkthrough.gif" width="720" alt="Silent preview of the commerce dashboard">
 
-### AI: references instead of copied numbers
-
-The model selects cells; Python retrieves exact values. Reviewed SQL and explicit scope review own the public workflow.
-
-| Model | Route + reference contract | Unsupported refusal |
-| --- | ---: | ---: |
-| qwen2.5:3b | 45% | 20% |
-| llama3:8b | 70% | 60% |
-
-Raw model-only results on 20 frozen, first-pass v2 questions. [Protocol, policy replay and failures](docs/AI_EVALUATION.md). Source lookup does not establish relevance.
+**AI layer:** an evidence copilot that only answers from reviewed SQL, with a scope gate that refuses anything the data can't support. [Evaluation, model comparison and failure analysis →](docs/AI_EVALUATION.md)
 
 **SQL · Python · DuckDB · dbt · Streamlit**
 
