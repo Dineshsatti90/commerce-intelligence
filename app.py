@@ -5,7 +5,7 @@ import json
 
 import streamlit as st
 
-from copilot import CATALOG, answer, evidence
+from copilot import CATALOG, answer, evidence, route
 from demo_data import load_table
 
 ROOT = Path(__file__).resolve().parent
@@ -28,14 +28,11 @@ def main() -> None:
         monthly = load_table("mart_monthly").sort_values("month")
         st.subheader("Delivered merchandise value by purchase month")
         st.line_chart(monthly.set_index("month")["delivered_gmv_brl"], color="#38b2ac")
-        left, right = st.columns(2)
-        with left:
-            st.subheader("Fulfillment completion")
-            st.dataframe(load_table("mart_fulfillment").sort_values("step"), hide_index=True, width="stretch")
-        with right:
-            st.subheader("Largest product categories")
-            categories = load_table("mart_categories").nlargest(8, "delivered_gmv_brl")
-            st.bar_chart(categories.set_index("category")["delivered_gmv_brl"], horizontal=True)
+        st.subheader("Fulfillment completion")
+        st.dataframe(load_table("mart_fulfillment").sort_values("step"), hide_index=True, width="stretch")
+        st.subheader("Largest product categories")
+        categories = load_table("mart_categories").nlargest(8, "delivered_gmv_brl")
+        st.bar_chart(categories.set_index("category")["delivered_gmv_brl"], horizontal=True, height=360)
         st.caption(
             "GMV is merchandise value. The completion funnel describes fulfillment, not browsing conversion."
         )
@@ -76,15 +73,41 @@ def main() -> None:
             question = st.text_input(
                 "Question", "Show 90-day repeat purchase rates by eligible customer cohort."
             )
-            if st.button("Investigate"):
+            st.warning(
+                "Free-text routing is experimental. Source-value checks do not establish relevance. Review the suggested scope before requesting observations."
+            )
+            if st.button("Suggest evidence scope"):
                 try:
-                    response = answer(question)
+                    suggested = route(question)
+                    st.session_state["suggested_scope"] = suggested
+                    st.session_state["scope_question"] = question
+                except (RuntimeError, ValueError, OSError) as error:
+                    st.error(str(error))
+            suggested = st.session_state.get("suggested_scope")
+            if suggested:
+                st.info(
+                    "Suggested scope: "
+                    + (CATALOG[suggested]["description"] if suggested in CATALOG else "Unsupported request")
+                )
+            approved = st.selectbox(
+                "Review and select the evidence scope",
+                ["Not reviewed", *CATALOG],
+                format_func=lambda key: CATALOG[key]["description"] if key in CATALOG else key,
+            )
+            confirmed = st.checkbox("I reviewed the scope and understand that it may not answer my question.")
+            if st.button("Investigate", disabled=not confirmed or approved == "Not reviewed"):
+                try:
+                    response = answer(question, query_id=approved)
                     if response["status"] == "unsupported":
                         st.warning(response["message"])
                     else:
                         for observation in response["observations"]:
                             st.write(observation["text"])
                             st.caption(observation["citation"])
+                        st.dataframe(response["evidence"]["records"], hide_index=True, width="stretch")
+                        st.caption(
+                            "The full reviewed result table is shown; the selected cells are not a free-form conclusion."
+                        )
                         with st.expander("Source records"):
                             st.json(response["evidence"])
                 except (RuntimeError, ValueError, OSError, KeyError) as error:

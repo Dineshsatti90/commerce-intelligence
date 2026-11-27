@@ -1,7 +1,7 @@
 # Delivery and repeat purchase: decision memo
 
 ## Recommendation
-Do not book retention savings from delivery improvements: the adjusted day-31–90 repeat difference is -0.16 percentage points (95% CI -0.44 to +0.12). Prioritize an operational review in MA, CE, BA based on first-order lateness, and test customer outcomes prospectively.
+Late deliveries are associated with worse reviews; no statistically detectable repeat-purchase association appears in the adjusted landmark model. Do not book retention savings: the day-31–90 repeat difference is -0.16 percentage points (95% CI -0.45 to +0.13). Prioritize an operational review in MA, CE, BA based on first-order lateness, and test customer outcomes prospectively.
 
 Delivery improvement is a customer-experience hypothesis, not a quantified retention business case. Late delivered orders have a mean review score of 2.27 versus 4.29 on-time in the broader order analysis. Pair operational remediation with a preregistered delivery-communication experiment; do not forecast recovered revenue from that association.
 
@@ -16,7 +16,12 @@ Among 75,703 customers with a complete 90-day window, 2 have unavailable first-o
 ## Timing-aware adjusted comparison
 A simple full-window regression can let purchases before delivery influence a purported delivery effect. The adjusted model therefore uses a day-30 landmark: the first order must be delivered by day 30, no repeat purchase may have occurred by day 30, and the outcome is a repeat purchase on days 31–90. 70,427 customers and 449 repeat events remain.
 
-The binomial model controls for state, category, purchase quarter and log order value. The standardized risk difference for late versus on-time delivery is -0.16 percentage points (HC1/delta-method 95% CI -0.44 to +0.12). The fitted association is lower; the interval and model assumptions matter more than its sign. This is a selected landmark population and an observational association, not an identified causal effect.
+The binomial model controls for state, category, purchase quarter and log order value. The standardized risk difference for late versus on-time delivery is -0.16 percentage points (HC1/delta-method 95% CI -0.45 to +0.13). The fitted association is lower; the interval and model assumptions matter more than its sign. This is a selected landmark population and an observational association, not an identified causal effect.
+
+## What the uncertainty permits
+The interval does not establish no effect: it includes a decline of 0.45 points. The landmark on-time day-31–90 baseline is 0.64%, distinct from the roughly 2% full-window baseline. Do not divide the adjusted interval by the full-window baseline as though they describe the same population and outcome.
+
+For a prospective independent two-group comparison with these landmark group sizes and on-time baseline, a two-sided 5% test with 80% power has an approximate minimum detectable decrease of 0.39 percentage points (60.3% relative). This arcsine normal-approximation planning calculation fixes baseline and group allocation; it is not retrospective power for the adjusted GLM and does not account for clustering or randomized-intervention compliance. A future experiment needs its own allocation, baseline, follow-up and power plan.
 
 ## Operational priorities
 States are ranked by first-order lateness among states with at least 500 eligible customers: MA, CE, BA. See `state_delivery_priorities.csv` for denominators and rates. `seller_delivery_priorities.csv` lists anonymized seller IDs with at least 100 customers; IDs must be mapped by an operator before action. Carrier identities do not exist in the dataset.

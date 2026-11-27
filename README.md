@@ -2,35 +2,46 @@
 
 [![Checks](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml/badge.svg)](https://github.com/Dineshsatti90/commerce-intelligence/actions/workflows/check.yml)
 
-**Which delivery problems deserve action—and do the data support a retention business case?**
+**Late deliveries have much worse review scores; a repeat-purchase association remains statistically uncertain.**
 
-SQL/dbt analysis of 99,441 real Olist orders, a timing-aware repeat-purchase study and an evaluated, source-verified AI query router.
+SQL/dbt analysis of 99,441 real Olist orders, a timing-aware repeat-purchase study and a separately evaluated AI evidence router.
 
 **[Open the live dashboard](https://dineshsatti90-commerce-intelligence.streamlit.app/)**
 
 ## Three findings
 
 1. **Delivery experience differs sharply:** mean review scores are 2.27 for late deliveries versus 4.29 on time.
-2. **Retention savings are not established:** raw 90-day repeat rates are 1.77% after a late first order versus 2.03% on time. The timing-aware model estimates a −0.16 percentage-point difference on days 31–90, with a 95% interval of −0.44 to +0.12.
+2. **Retention savings are not established:** raw 90-day repeat rates are 1.77% after a late first order versus 2.03% on time. The timing-aware model estimates a −0.16 percentage-point difference on days 31–90, with a 95% interval of -0.45 to +0.13 points. This does not establish no effect.
 3. **Investigate MA, CE and BA first:** first-order late rates are 18.4%, 16.5% and 13.9% among states with at least 500 eligible customers. Pair operational remediation with a prospective customer-outcome experiment.
 
 ![Project preview](docs/screenshots/overview.jpg)
+
+**[Two-minute decision walkthrough](docs/WALKTHROUGH.md)** · [Method choices for interviews](docs/METHOD_CHOICES.md)
 
 **Stack:** Python · SQL · DuckDB · dbt · Streamlit · statsmodels · optional local/API LLM.
 
 [Decision memo](reports/decision_memo.md) · [Experiment design](reports/experiment_memo.md) · [State priorities](reports/state_delivery_priorities.csv)
 
-## Measured AI performance
+## AI evaluation: source checks do not prove relevance
 
-The copilot routes questions to six reviewed SQL queries, selects source observations and checks every cited value. It never executes model-written SQL. Offline mode runs the same catalog on committed aggregate extracts.
+The copilot uses eight reviewed SQL queries, including SQL-computed monthly endpoints/peak and weighted retention summaries. Native JSON Schema constrains output structure; cited values are separately checked. The complete result table accompanies selected cells.
 
-| Local Qwen 2.5 3B, 30 regression questions | Result |
-| --- | ---: |
-| Correct query/refusal routing | 86.7% |
-| Correct route plus validated output/refusal | 50.0% |
-| Refusal of 12 unsupported questions | 66.7% |
+| Model | Set | N | Correct route | Route + source contract | Unsupported refusal | Wrong route with displayable cells |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| qwen2.5:3b | regression | 30 | 63% | 40% | 17% | 8 |
+| qwen2.5:3b | fresh | 20 | 55% | 25% | 10% | 8 |
+| llama3:8b | regression | 30 | 90% | 70% | 75% | 1 |
+| llama3:8b | fresh | 20 | 90% | 80% | 90% | 2 |
 
-The initial prompt achieved only 43.3% routing. A revised prompt clarifies that the router retrieves existing data. Valid requests can still produce rejected values, and unsupported requests can be misrouted. This is an evaluated prototype. [Full run](reports/ai_evaluation.json) · [Examples and failures](docs/AI_EVALUATION.md) · [Initial run](eval/runs/qwen_initial.json).
+The 20 fresh questions were frozen before these first-pass runs; the old 30 remain a developer-visible regression set. Both sets are developer-authored, not independent benchmarks. Schema mode did not improve every metric: the 3B model often failed to refuse unsupported questions. The 8B model did better but still produced displayable cells from wrong queries. **We do not claim zero incorrect answers.** The demo defaults to explicit query selection; configured free-text mode requires review and selection of the evidence scope before observations can be requested.
+
+[Protocol, settings and failures](docs/AI_EVALUATION.md) · [Comparison](reports/model_comparison.json) · [Frozen questions](eval/fresh_questions.json) · [All recorded runs](eval/runs)
+
+## What the delivery interval means
+
+The on-time landmark day-31–90 baseline is 0.64%, not the roughly 2% full-window rate. A meaningful decline is still compatible with the interval. A separate independent two-proportion planning approximation, fixing these landmark group sizes and baseline, needs about **0.39 percentage points** of decrease for 80% power at two-sided 5% alpha. That is 60% relative to this low landmark baseline; it is not retrospective GLM power. [Design assumptions and memo](reports/decision_memo.md).
+
+Free Community Cloud demos may sleep after inactivity; screenshots and the walkthrough remain available while they wake.
 
 ## Run the demo
 

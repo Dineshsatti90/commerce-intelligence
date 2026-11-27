@@ -28,3 +28,7 @@ First-time customers have no varying prior purchase spend in this setting. A str
 ## AI boundary
 
 The model routes questions to reviewed SQL rather than creating arbitrary executable SQL. It then selects source cells. Deterministic code validates values and constructs citations. This prevents several classes of fabricated statements but does not guarantee the model chose the most relevant query. Evaluation reports routing and end-to-end contract outcomes separately. Human relevance review and unseen evaluation questions remain necessary before deployment.
+
+
+## Sparse-control and sensitivity revision
+The landmark model now pools states with fewer than 500 customers and adjacent sparse quarters by sample counts, without inspecting outcomes. Unpooled zero-event dummy groups previously caused quasi-separation and unstable HC1 intervals; this supersedes the old −0.44/+0.12 interval with a repeatable interval of roughly −0.45/+0.13 points. The 33-column design has rank 33. The planning sensitivity uses a separate independent two-proportion design at the 0.643% on-time landmark baseline; it is not retrospective adjusted-model power. See [method choices](METHOD_CHOICES.md).

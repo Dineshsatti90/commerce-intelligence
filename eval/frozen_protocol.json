@@ -1,0 +1,10 @@
+{
+  "frozen_at": "2026-11-27T00:37:11.072417+00:00",
+  "protocol": "Freeze code, prompts and questions before any schema-run outputs. Both models use the same settings. Fresh questions are first-pass, developer-authored, not independent; no tuning or reruns selected by score. A failed infrastructure call is recorded, not silently dropped.",
+  "questions_sha256": "67a6285940ca8dbe90b8a929a122ab50f7e649e6568fb5b60d4b79cc0dbdcfdc",
+  "copilot_sha256": "428aa2d64b5a7eeeab26dd0ceaf13c6ecd92eb1f5545329b6fd302c5efafddaa",
+  "models": [
+    "qwen2.5:3b",
+    "llama3:8b"
+  ]
+}

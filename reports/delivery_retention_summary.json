@@ -28,23 +28,35 @@
     "customers": 70427,
     "repeat_events": 449,
     "controls": [
-      "state",
+      "state; groups below 500 customers pooled by count",
       "10 largest product categories + other",
-      "purchase quarter",
+      "purchase quarter; adjacent early/sparse quarters pooled to at least 500 by count",
       "log(1 + order value)"
     ],
     "model": "binomial GLM with HC1 covariance; day-30 landmark",
     "converged": true,
-    "adjusted_risk_difference": -0.0015855949534009622,
+    "design_columns": 33,
+    "design_rank": 33,
+    "covariance_finite": true,
+    "standard_error_risk_difference": 0.0014876150486430777,
+    "adjusted_risk_difference": -0.0016075931128926076,
     "risk_difference_ci95": [
-      -0.004380299917645491,
-      0.0012091100108435665
+      -0.0045233186082330405,
+      0.0013081323824478248
     ],
-    "late_delivery_odds_ratio": 0.7519047650313522,
+    "late_delivery_odds_ratio": 0.7485188932103697,
     "odds_ratio_ci95": [
-      0.4119802228733308,
-      1.3723007666090836
+      0.40975177813944624,
+      1.3673657159876993
     ]
   },
-  "decision": "Do not book retention savings from delivery improvements: the adjusted day-31\u201390 repeat difference is -0.16 percentage points (95% CI -0.44 to +0.12). Prioritize an operational review in MA, CE, BA based on first-order lateness, and test customer outcomes prospectively."
+  "planning_sensitivity": {
+    "design": "Independent two-proportion normal approximation; two-sided alpha 0.05, power 0.80; observed landmark group sizes and on-time baseline fixed as planning assumptions. Not the adjusted GLM's power or a causal guarantee.",
+    "baseline_rate": 0.006428791592667068,
+    "ontime_customers": 68131,
+    "late_customers": 2296,
+    "minimum_detectable_decrease_pp": 0.38763252537210646,
+    "minimum_detectable_relative_decrease": 0.6029632782220773
+  },
+  "decision": "Late deliveries are associated with worse reviews; no statistically detectable repeat-purchase association appears in the adjusted landmark model. Do not book retention savings: the day-31\u201390 repeat difference is -0.16 percentage points (95% CI -0.45 to +0.13). Prioritize an operational review in MA, CE, BA based on first-order lateness, and test customer outcomes prospectively."
 }

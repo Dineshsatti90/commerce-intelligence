@@ -1,7 +1,8 @@
 """Small GitHub-native SVG of actual results; not a fabricated application screenshot."""
 
 from pathlib import Path
-import csv, json
+import csv
+import json
 from datetime import date
 
 ROOT = Path(__file__).resolve().parent
@@ -11,7 +12,7 @@ values = [float(r["delivered_gmv_brl"] or 0) for r in rows]
 dates = [date.fromisoformat(r["month"]).toordinal() for r in rows]
 coords = [
     (65 + (d - min(dates)) / (max(dates) - min(dates)) * 970, 410 - v / max(values) * 200)
-    for d, v in zip(dates, values)
+    for d, v in zip(dates, values, strict=False)
 ]
 line = " ".join(f"{x:.1f},{y:.1f}" for x, y in coords)
 svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="540" viewBox="0 0 1100 540">

@@ -1,0 +1,51 @@
+{
+  "protocol": "eval/frozen_protocol.json",
+  "results": [
+    {
+      "model": "qwen2.5:3b",
+      "cases": 30,
+      "routing_accuracy": 0.6333333333333333,
+      "end_to_end_pass_rate": 0.4,
+      "unsupported_refusal_rate": 0.16666666666666666,
+      "wrong_route_with_displayable_output": 8,
+      "split": "regression",
+      "run_file": "eval/runs/qwen3b_schema_regression.json",
+      "source_matches_frozen": true
+    },
+    {
+      "model": "qwen2.5:3b",
+      "cases": 20,
+      "routing_accuracy": 0.55,
+      "end_to_end_pass_rate": 0.25,
+      "unsupported_refusal_rate": 0.1,
+      "wrong_route_with_displayable_output": 8,
+      "split": "fresh",
+      "run_file": "eval/runs/qwen3b_schema_fresh.json",
+      "source_matches_frozen": true
+    },
+    {
+      "model": "llama3:8b",
+      "cases": 30,
+      "routing_accuracy": 0.9,
+      "end_to_end_pass_rate": 0.7,
+      "unsupported_refusal_rate": 0.75,
+      "wrong_route_with_displayable_output": 1,
+      "split": "regression",
+      "run_file": "eval/runs/llama8b_schema_regression.json",
+      "source_matches_frozen": true
+    },
+    {
+      "model": "llama3:8b",
+      "cases": 20,
+      "routing_accuracy": 0.9,
+      "end_to_end_pass_rate": 0.8,
+      "unsupported_refusal_rate": 0.9,
+      "wrong_route_with_displayable_output": 2,
+      "split": "fresh",
+      "run_file": "eval/runs/llama8b_schema_fresh.json",
+      "source_matches_frozen": true
+    }
+  ],
+  "decision": "Use explicit SQL scope selection in the demo. Free-text candidate routing requires user review before observations. Numeric cell checks do not prove relevance; schema compliance does not prove refusal behavior.",
+  "fresh_set": "20 first-pass questions frozen before these runs, developer-authored and not an independent benchmark."
+}

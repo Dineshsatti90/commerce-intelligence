@@ -36,4 +36,4 @@ def query_records(query_id: str) -> list[dict]:
             database.execute(f"CREATE VIEW {table} AS SELECT * FROM read_csv('{filename}', header=true)")
         cursor = database.execute(CATALOG[query_id]["sql"])
         columns = [column[0] for column in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return [dict(zip(columns, row, strict=False)) for row in cursor.fetchall()]

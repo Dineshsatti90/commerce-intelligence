@@ -8,8 +8,37 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from statsmodels.stats.proportion import proportion_confint
+from statsmodels.stats.proportion import proportion_effectsize
+from statsmodels.stats.power import NormalIndPower
+from scipy.optimize import brentq
 
 ROOT = Path(__file__).resolve().parent
+
+
+def detectable_decrease(baseline: float, ontime_n: int, late_n: int) -> dict:
+    """Independent two-proportion planning sensitivity, not post-hoc GLM power."""
+    if not 0 < baseline < 1 or min(ontime_n, late_n) <= 0:
+        raise ValueError("Positive groups and a probability baseline are required")
+    analysis = NormalIndPower()
+
+    def power(drop: float) -> float:
+        effect = proportion_effectsize(baseline, baseline - drop)
+        return float(
+            analysis.power(
+                effect, nobs1=ontime_n, ratio=late_n / ontime_n, alpha=0.05, alternative="two-sided"
+            )
+        )
+
+    upper = baseline * (1 - 1e-10)
+    decrease = brentq(lambda d: power(d) - 0.8, 0, upper) if power(upper) >= 0.8 else None
+    return {
+        "design": "Independent two-proportion normal approximation; two-sided alpha 0.05, power 0.80; observed landmark group sizes and on-time baseline fixed as planning assumptions. Not the adjusted GLM's power or a causal guarantee.",
+        "baseline_rate": baseline,
+        "ontime_customers": ontime_n,
+        "late_customers": late_n,
+        "minimum_detectable_decrease_pp": decrease * 100 if decrease is not None else None,
+        "minimum_detectable_relative_decrease": decrease / baseline if decrease is not None else None,
+    }
 
 
 def wilson(successes: int, total: int) -> tuple[float, float]:
@@ -22,7 +51,25 @@ def wilson(successes: int, total: int) -> tuple[float, float]:
 def adjusted_effect(frame: pd.DataFrame) -> dict:
     """Average marginal risk difference, with delta-method robust uncertainty."""
     top_categories = frame.category.value_counts().head(10).index
+    # Pool sparse groups by sample size, never by their observed outcomes.
+    # Zero-event dummy groups previously caused quasi-separation and unstable HC1 covariance.
+    state_counts = frame.state.value_counts()
+    quarter_counts = frame.quarter.value_counts().sort_index()
+    quarter_map = {}
+    pending = []
+    count = 0
+    for quarter, size in quarter_counts.items():
+        pending.append(quarter)
+        count += size
+        if count >= 500:
+            quarter_map.update({key: quarter for key in pending})
+            pending, count = [], 0
+    if pending:
+        target = next(reversed(quarter_map.values())) if quarter_map else "all_periods"
+        quarter_map.update({key: target for key in pending})
     controls = frame.assign(
+        state=frame.state.where(frame.state.map(state_counts) >= 500, "other_small_states"),
+        quarter=frame.quarter.map(quarter_map),
         category=frame.category.where(frame.category.isin(top_categories), "other"),
         log_order_value=np.log1p(frame.merchandise_value_brl.astype(float)),
     )
@@ -52,13 +99,17 @@ def adjusted_effect(frame: pd.DataFrame) -> dict:
         "customers": len(frame),
         "repeat_events": int(frame.repeat_after_30d.sum()),
         "controls": [
-            "state",
+            "state; groups below 500 customers pooled by count",
             "10 largest product categories + other",
-            "purchase quarter",
+            "purchase quarter; adjacent early/sparse quarters pooled to at least 500 by count",
             "log(1 + order value)",
         ],
         "model": "binomial GLM with HC1 covariance; day-30 landmark",
         "converged": bool(fitted.converged),
+        "design_columns": matrix.shape[1],
+        "design_rank": int(np.linalg.matrix_rank(matrix)),
+        "covariance_finite": bool(np.isfinite(fitted.cov_params()).all().all()),
+        "standard_error_risk_difference": se,
         "adjusted_risk_difference": difference,
         "risk_difference_ci95": [difference - 1.96 * se, difference + 1.96 * se],
         "late_delivery_odds_ratio": float(np.exp(coefficient)),
@@ -112,6 +163,10 @@ def run() -> None:
         (known.delivered_at <= known.purchased_at + pd.Timedelta(days=30)) & ~known.repeat_by_30d
     ].copy()
     model = adjusted_effect(landmark)
+    ontime = landmark[~landmark.is_late.astype(bool)]
+    sensitivity = detectable_decrease(
+        float(ontime.repeat_after_30d.mean()), len(ontime), int(landmark.is_late.sum())
+    )
     states = (
         known.groupby("state")
         .agg(customers=("order_id", "size"), late_customers=("is_late", "sum"))
@@ -133,7 +188,7 @@ def run() -> None:
     lo, hi = model["risk_difference_ci95"]
     direction = "lower" if model["adjusted_risk_difference"] < 0 else "higher"
     decision = (
-        f"Do not book retention savings from delivery improvements: the adjusted day-31–90 repeat difference is "
+        f"Late deliveries are associated with worse reviews; no statistically detectable repeat-purchase association appears in the adjusted landmark model. Do not book retention savings: the day-31–90 repeat difference is "
         f"{model['adjusted_risk_difference'] * 100:+.2f} percentage points (95% CI {lo * 100:+.2f} to {hi * 100:+.2f}). "
         f"Prioritize an operational review in {', '.join(states.state.head(3))} based on first-order lateness, and test customer outcomes prospectively."
     )
@@ -149,6 +204,7 @@ def run() -> None:
             "note": "Reasons can overlap; unique included count is in the model.",
         },
         "adjusted_model": model,
+        "planning_sensitivity": sensitivity,
         "decision": decision,
     }
     (ROOT / "reports/delivery_retention_summary.json").write_text(json.dumps(summary, indent=2))
@@ -172,6 +228,11 @@ Among {total:,} customers with a complete 90-day window, {total - len(known):,} 
 A simple full-window regression can let purchases before delivery influence a purported delivery effect. The adjusted model therefore uses a day-30 landmark: the first order must be delivered by day 30, no repeat purchase may have occurred by day 30, and the outcome is a repeat purchase on days 31–90. {len(landmark):,} customers and {model["repeat_events"]:,} repeat events remain.
 
 The binomial model controls for state, category, purchase quarter and log order value. The standardized risk difference for late versus on-time delivery is {model["adjusted_risk_difference"] * 100:+.2f} percentage points (HC1/delta-method 95% CI {lo * 100:+.2f} to {hi * 100:+.2f}). The fitted association is {direction}; the interval and model assumptions matter more than its sign. This is a selected landmark population and an observational association, not an identified causal effect.
+
+## What the uncertainty permits
+The interval does not establish no effect: it includes a decline of {abs(lo) * 100:.2f} points. The landmark on-time day-31–90 baseline is {sensitivity["baseline_rate"]:.2%}, distinct from the roughly 2% full-window baseline. Do not divide the adjusted interval by the full-window baseline as though they describe the same population and outcome.
+
+For a prospective independent two-group comparison with these landmark group sizes and on-time baseline, a two-sided 5% test with 80% power has an approximate minimum detectable decrease of {sensitivity["minimum_detectable_decrease_pp"]:.2f} percentage points ({sensitivity["minimum_detectable_relative_decrease"]:.1%} relative). This arcsine normal-approximation planning calculation fixes baseline and group allocation; it is not retrospective power for the adjusted GLM and does not account for clustering or randomized-intervention compliance. A future experiment needs its own allocation, baseline, follow-up and power plan.
 
 ## Operational priorities
 States are ranked by first-order lateness among states with at least 500 eligible customers: {", ".join(states.state.head(3))}. See `state_delivery_priorities.csv` for denominators and rates. `seller_delivery_priorities.csv` lists anonymized seller IDs with at least 100 customers; IDs must be mapped by an operator before action. Carrier identities do not exist in the dataset.
