@@ -8,9 +8,12 @@ did not generalize to the first-pass v2 questions. This gate inverts the logic:
    reviews, states, categories).
 2. **Data contract.** It is refused if it asks for anything the data contract
    documents as unavailable (profit, refunds, ads, browsing, forecasts, causal
-   claims, experiment results, personal data, carrier identities, demographics,
-   competitor comparisons, individual people, single-entity filters, external
-   execution or instruction changes).
+   claims, experiment results, personal data, carrier identities, single-entity
+   filters, demographics, competitors, individual people, dates outside the
+   2016-2018 release, external execution or instruction changes).
+
+Demographics, competitors, individual people and the data window were added after
+the blind v4 run; see docs/AI_EVALUATION.md.
 
 It runs before any model call, needs no network or model download, and is
 deterministic. It is a scope check, not a semantic-correctness check: a question
@@ -68,14 +71,11 @@ OUT_OF_CONTRACT = {
     "experiment_result": r"\b(uplift|lift(ed)?|a/b|ab test|treatment|winning|notification test|shipping experiment|test result)\b",
     "personal_data": r"\b(customers?|buyers?|shoppers?|users?|sellers?)\b.{0,40}\b(names?|e-?mails?|phones?|address\w*)\b|\b(e-?mails?|phone numbers?|street address\w*|cpf|buyer identit\w*)\b",
     "carrier_identity": r"\b(carrier|delivery company|shipping company|courier|logistics provider)\b.{0,40}\b(name|by name|fire|which one)\b|\bby name\b",
-    "demographics": r"\b(ages?|genders?|ethnicit(?:y|ies)|marital|demographics?|household income|incomes?)\b",
-    "competitor": r"\b(competitors?|mercado libre|amazon|shopee|magazine luiza|market share|industry benchmarks?)\b",
-    "individual_people": (
-        r"\b((?:delivery )?drivers?|employees?|workers?|"
-        r"named (?:people|persons?|workers?|employees?)|"
-        r"individual (?:people|persons?|drivers?|employees?|workers?))\b"
-    ),
     "single_entity_filter": r"\b(only|just|solely|exclusively|filter\w*)\b.{0,50}\b(state|from|for|in|month|year|january|february|march|april|may|june|july|august|september|october|november|december|\d{4}|[a-z]{2} only)\b|\bonly\b.{0,10}\bfor the state of\b|\bthe state of [a-z]+\b",
+    "demographics": r"\b(ages?|aged|income|household\w*|salar\w*|gender|ethnic\w*|race|education|occupation|demographic\w*|marital)\b",
+    "competitor_or_market": r"\b(competitors?|rivals?|market share|mercado ?livre|mercado ?libre|amazon|shopee|magalu|americanas|other marketplaces?|industry (average|benchmark))\b",
+    "individual_people": r"\b(drivers?|couriers?|delivery (person|people|staff|agents?)|employees?|staff|agents?|warehouse workers?)\b",
+    "outside_data_window": r"\b(19\d\d|20(0\d|1[0-5]|19|[2-9]\d))\b",
     "external_or_execution": r"\b(execute|run select|select \*|drop table|sql|url|https?|api|fetch|external|private table|credentials?|secrets?|environment variables?)\b",
     "instruction_change": r"\b(ignore|disregard|forget|pretend|override|higher priority|act as|you are now|new job|fabricat\w*|make up|made up|invent\w*|confirm it|approves?|authori[sz]\w*|obsolete)\b",
 }
@@ -98,3 +98,10 @@ def scope_decision(question: str) -> tuple[bool, str]:
     if not any(re.search(p, text) for p in IN_SCOPE):
         return False, "no_catalog_concept"
     return True, "in_scope"
+
+
+SCOPE_HELP = (
+    "I can only answer from reviewed queries over the 2016-2018 Olist release: order and delivered-GMV totals, "
+    "monthly trends, fulfillment steps, 90-day repeat-purchase cohorts, late versus on-time reviews by state, "
+    "and product categories by delivered GMV."
+)
