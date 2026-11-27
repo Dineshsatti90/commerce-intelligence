@@ -8,15 +8,17 @@ from copilot import validate_observations, evidence
 from analyze import cuped, sample_size
 
 
-def test_rejects_fabricated_number_and_prose():
-    p = {"query_id": "test", "records": [{"orders": 100}]}
-    with pytest.raises(ValueError):
-        validate_observations([{"row": 0, "column": "orders", "value": 999}], p)
-    with pytest.raises(ValueError):
-        validate_observations([{"row": 0, "column": "orders", "value": 100, "cause": "AI caused growth"}], p)
-    with pytest.raises(ValueError):
-        validate_observations([{"row": -1, "column": "orders", "value": 100}], p)
-    assert validate_observations([{"row": 0, "column": "orders", "value": 100}], p)[0]["value"] == 100
+def test_reference_lookup_rejects_numbers_and_prose():
+    packet = {"query_id": "test", "records": [{"orders": 100}]}
+    for item in [
+        {"row": 0, "column": "orders", "value": 999},
+        {"row": 0, "column": "orders", "cause": "AI caused growth"},
+        {"row": -1, "column": "orders"},
+        {"row": True, "column": "orders"},
+    ]:
+        with pytest.raises(ValueError):
+            validate_observations([item], packet)
+    assert validate_observations([{"row": 0, "column": "orders"}], packet)[0]["value"] == 100
 
 
 def test_sql_injection_is_not_a_catalog_query():
@@ -24,15 +26,18 @@ def test_sql_injection_is_not_a_catalog_query():
         evidence("overview; DROP TABLE raw.orders")
 
 
-def test_exact_numeric_representation_is_allowed_but_rounding_is_not():
-    packet = {"query_id": "test", "records": [{"amount": "100.00"}]}
-    assert (
-        validate_observations([{"row": 0, "column": "amount", "value": 100}], packet)[0]["value"] == "100.00"
-    )
+def test_renderer_owns_full_precision_and_rejects_nonmetrics():
+    packet = {
+        "query_id": "test",
+        "records": [{"amount": "100.00000000000000001", "date": "2026-01-31", "flag": True}],
+    }
+    result = validate_observations([{"row": 0, "column": "amount"}], packet)
+    assert result[0]["value"] == "100.00000000000000001"
+    for column in ["date", "flag", "missing"]:
+        with pytest.raises(ValueError):
+            validate_observations([{"row": 0, "column": column}], packet)
     with pytest.raises(ValueError):
-        validate_observations([{"row": 0, "column": "amount", "value": 99.99}], packet)
-    with pytest.raises(ValueError):
-        validate_observations([{"row": 0, "column": "amount", "value": True}], packet)
+        validate_observations([{"row": 0, "column": "amount"}] * 2, packet)
 
 
 def test_cuped_preserves_mean_and_reduces_variance_on_correlated_covariate():

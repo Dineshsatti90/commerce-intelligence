@@ -1,0 +1,179 @@
+{
+  "method": "Deterministic preflight replay on the exact raw model outputs, not another independent model run. Runtime preflight executes before the network call; unit tests assert that behavior.",
+  "summary": {
+    "model": "llama3:8b",
+    "split": "v2_first_pass",
+    "cases": 20,
+    "raw_routing_accuracy": 0.7,
+    "raw_reference_contract_pass": 0.7,
+    "raw_refusal_rate": 0.6,
+    "raw_wrong_route_displayable": 6,
+    "guarded_replay_pass": 0.7,
+    "guarded_replay_refusal_rate": 0.6,
+    "policy_false_refusals": 0,
+    "preflight_blocks": 0,
+    "run_file": "eval/runs/llama8b_references_v2_first_pass.json"
+  },
+  "results": [
+    {
+      "id": 201,
+      "policy_rule": null,
+      "actual": "retention",
+      "passed": false,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 202,
+      "policy_rule": null,
+      "actual": "monthly_summary",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 203,
+      "policy_rule": null,
+      "actual": "monthly",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 204,
+      "policy_rule": null,
+      "actual": "overview",
+      "passed": false,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 205,
+      "policy_rule": null,
+      "actual": "categories",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 206,
+      "policy_rule": null,
+      "actual": "delivery",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 207,
+      "policy_rule": null,
+      "actual": "overview",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 208,
+      "policy_rule": null,
+      "actual": "retention",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 209,
+      "policy_rule": null,
+      "actual": "retention_summary",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 210,
+      "policy_rule": null,
+      "actual": "monthly_summary",
+      "passed": true,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 211,
+      "policy_rule": null,
+      "actual": "delivery",
+      "passed": false,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 212,
+      "policy_rule": null,
+      "actual": "retention",
+      "passed": false,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 213,
+      "policy_rule": null,
+      "actual": "unsupported",
+      "passed": true,
+      "raw_displayable": false,
+      "guarded_displayable": false
+    },
+    {
+      "id": 214,
+      "policy_rule": null,
+      "actual": "unsupported",
+      "passed": true,
+      "raw_displayable": false,
+      "guarded_displayable": false
+    },
+    {
+      "id": 215,
+      "policy_rule": null,
+      "actual": "unsupported",
+      "passed": true,
+      "raw_displayable": false,
+      "guarded_displayable": false
+    },
+    {
+      "id": 216,
+      "policy_rule": null,
+      "actual": "delivery",
+      "passed": false,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 217,
+      "policy_rule": null,
+      "actual": "unsupported",
+      "passed": true,
+      "raw_displayable": false,
+      "guarded_displayable": false
+    },
+    {
+      "id": 218,
+      "policy_rule": null,
+      "actual": "delivery",
+      "passed": false,
+      "raw_displayable": true,
+      "guarded_displayable": true
+    },
+    {
+      "id": 219,
+      "policy_rule": null,
+      "actual": "unsupported",
+      "passed": true,
+      "raw_displayable": false,
+      "guarded_displayable": false
+    },
+    {
+      "id": 220,
+      "policy_rule": null,
+      "actual": "unsupported",
+      "passed": true,
+      "raw_displayable": false,
+      "guarded_displayable": false
+    }
+  ]
+}

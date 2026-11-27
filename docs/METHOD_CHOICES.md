@@ -10,6 +10,6 @@
 
 **Why aggregate joins first?** Orders can contain multiple items, payments and reviews. Aggregating each child table to order grain before joining prevents multiplicative fan-out; latest review selection and persistent customer IDs are explicit.
 
-**Why SQL summaries and scope review?** SQL computes endpoints and weighted rates deterministically while the model selects cited cells. Schema validity and exact matching cannot establish relevance, so fresh-set failures remain public and configured routing requires a person to select the intended scope.
+**Why SQL summaries and scope review?** SQL computes endpoints and weighted rates deterministically while the model selects cell references. Python retrieves exact values, removing transcription errors; references can still be irrelevant, so fresh-set failures remain public and configured routing requires a person to select the intended scope. Explicit preflight patterns screen known overrides but miss paraphrases.
 
 Planning references: [NormalIndPower](https://www.statsmodels.org/stable/generated/statsmodels.stats.power.NormalIndPower.html), [proportion effect size](https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.proportion_effectsize.html).

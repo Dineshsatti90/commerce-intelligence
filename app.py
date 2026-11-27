@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parent
 
 
 def main() -> None:
-    st.set_page_config(page_title="Commerce Intelligence", layout="wide")
-    st.title("Delivery experience & repeat purchase")
+    st.set_page_config(page_title="Commerce Intelligence", layout="wide", initial_sidebar_state="collapsed")
+    st.title("Delivery & repeat purchase")
     st.caption("Olist marketplace | historical real orders | BRL | purchases before September 2018")
     metrics = json.loads((ROOT / "reports/metrics.json").read_text())
     st.sidebar.header("About this demo")
@@ -74,7 +74,7 @@ def main() -> None:
                 "Question", "Show 90-day repeat purchase rates by eligible customer cohort."
             )
             st.warning(
-                "Free-text routing is experimental. Source-value checks do not establish relevance. Review the suggested scope before requesting observations."
+                "Free-text routing is experimental. Source lookup does not establish relevance. Review the suggested scope before requesting observations."
             )
             if st.button("Suggest evidence scope"):
                 try:

@@ -32,3 +32,7 @@ The model routes questions to reviewed SQL rather than creating arbitrary execut
 
 ## Sparse-control and sensitivity revision
 The landmark model now pools states with fewer than 500 customers and adjacent sparse quarters by sample counts, without inspecting outcomes. Unpooled zero-event dummy groups previously caused quasi-separation and unstable HC1 intervals; this supersedes the old −0.44/+0.12 interval with a repeatable interval of roughly −0.45/+0.13 points. The 33-column design has rank 33. The planning sensitivity uses a separate independent two-proportion design at the 0.643% on-time landmark baseline; it is not retrospective adjusted-model power. See [method choices](METHOD_CHOICES.md).
+
+
+## Reference-only revision
+Models select row/column pairs instead of copying values. Python validates bounds, duplicate references and finite numeric source cells, then retrieves original precision. The model-only comparison separates v1 regression sets from 20 first-pass v2 questions; policy replay is explicitly derived from the same raw outputs. Preflight checks run before the model but do not establish semantic relevance or complete attack coverage.
