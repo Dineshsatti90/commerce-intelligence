@@ -13,7 +13,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from copy import deepcopy
 from request_policy import preflight_reason
-from scope_gate import scope_decision
+from scope_gate import SCOPE_HELP, scope_decision
 from datetime import datetime, timezone
 import urllib.request
 import duckdb
@@ -239,7 +239,7 @@ def answer(question: str, *, query_id: str | None = None, enforce_policy: bool =
                 "status": "unsupported",
                 "refusal_origin": "scope_gate",
                 "rule": scope_reason,
-                "message": "The approved data and query catalog cannot answer this question.",
+                "message": "The approved data and query catalog cannot answer this question. " + SCOPE_HELP,
             }
     query_id = query_id or route(question, enforce_policy=enforce_policy)
     if query_id == "unsupported":

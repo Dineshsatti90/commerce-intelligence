@@ -19,7 +19,7 @@ RULES = (
     ("credential_request", r"\b(api[ _-]?keys?|credentials?|environment variables?|secrets?)\b"),
     (
         "falsify_values",
-        r"\b(replace|change|alter)\b.{0,80}\b(gross_profit_change|source value|reported number)\b",
+        r"\b(replace|change|alter)\b.{0,80}\b(source value|reported number)\b",
     ),
 )
 

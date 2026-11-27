@@ -28,6 +28,27 @@ The keyword preflight blocked **0** of the first-pass v2 questions: it had learn
 
 **Read these numbers carefully.** The gate was tuned on the regression, v1 and v2 sets, so 100% there is expected. The [v3 held-out set](../eval/holdout_questions_v3.json) was written and fingerprinted before the gate code, but by the same author, who knew those questions while writing the rules. Its 24/24 is an upper bound, not an independent estimate. The real test is questions written blind by someone else: `python evaluate_gate.py --cases their_questions.json`. The remaining wrong-route answers are supported questions sent to a neighbouring query (for example `retention` instead of `retention_summary`), which a scope gate cannot catch. Full decisions: [scope_gate_evaluation.json](../reports/scope_gate_evaluation.json).
 
+## Blind run (v4): the first independent number
+
+A separate reviewer, not the gate's author, wrote 16 questions (8 answerable, 8 not) and scored them against the unchanged gate (`scope_gate.py` at `main` `917a121`).
+
+| | Result |
+|---|---:|
+| Overall | **12/16 (75%)** |
+| Answerable questions allowed | 7/8 (87.5%) |
+| Unanswerable questions refused | 5/8 (62.5%) |
+
+**What it found**
+
+- **3 false allows, all real gaps.** A question about customer age and household income, one comparing 2025 performance with Mercado Libre and Amazon Brazil, and one about individual delivery drivers all passed because they contain catalog words (customer, repeat, late, delivery). None of that data exists in the release.
+- **1 disputed refusal.** A question about demand-forecast accuracy (WAPE versus a baseline) was refused by the `forecast` rule. This project has no forecast, so the refusal is correct even though the question was labelled answerable. The score above keeps the reviewer's label; under the data contract it would be 13/16.
+
+**What changed afterwards**
+
+Four contract families were added: `demographics`, `competitor_or_market`, `individual_people` and `outside_data_window` (years outside the 2016–2018 release). Refusals now tell the user what the assistant *can* answer. All earlier sets still score 100% / 0% false refusals.
+
+**These 16 questions are now tuning data.** Any re-score on them after the fix is not a blind result, and none is claimed. The next independent number needs a new blind set. The exact questions and per-question decisions belong in `eval/blind_v4_questions.json`, committed unchanged as the reviewer wrote them.
+
 ## Current raw-model results
 | Model | Set | N | Correct route | Route + valid references | Unsupported refusal | Policy replay pass |
 |---|---|---:|---:|---:|---:|---:|
@@ -46,7 +67,7 @@ Both native Ollama runs used temperature 0, seed 42, context 8,192 and a 600-tok
 The contract changed from copied values to references; earlier contract-pass scores are not a clean measure of model improvement. Older schema/value runs remain in [runs](../eval/runs). Reference bounds, finite numeric types and duplicates are independently checked. Precision is preserved by retrieving the original value, not rounding or accepting approximate model text.
 
 ## Pre-model checks and policy replay
-[request_policy.py](../request_policy.py) normalizes Unicode and screens explicit instruction overrides, fabricated experiments, authority impersonation, causal assertions, credential requests and executable SQL patterns. Runtime checks run before model configuration or network access, including when a query ID is supplied. Tests assert that a blocked request does not call the model.
+The "policy replay" figures in this document were computed with the earlier `request_policy.py`; a later commit removed one finance-specific term from it. [request_policy.py](../request_policy.py) normalizes Unicode and screens explicit instruction overrides, fabricated experiments, authority impersonation, causal assertions, credential requests and executable SQL patterns. Runtime checks run before model configuration or network access, including when a query ID is supplied. Tests assert that a blocked request does not call the model.
 
 The raw runs disable preflight for measurement. Policy replay applies the frozen rules to those same raw outputs, replacing matched requests with refusals; it is not another independent model run. No v2 first-pass commerce questions matched these patterns: the new paraphrases expose the limits of keyword/pattern screening. Rules can miss attacks or reject legitimate requests. Reviewed SQL scope selection, read-only queries and the UI review gate remain necessary.
 
