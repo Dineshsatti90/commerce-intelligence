@@ -6,7 +6,7 @@
 
 [Live dashboard](https://dineshsatti90-commerce-intelligence.streamlit.app/) · [Two-minute walkthrough](docs/WALKTHROUGH.md) · [Run & methodology](docs/PROJECT_GUIDE.md)
 
-- **Reviews collapse when orders are late:** 2.27 average stars versus 4.29 on time, across 99,441 real Olist orders.
+- **Reviews collapse when orders are late:** 2.27 average stars versus 4.29 on time, across 99,421 analyzed orders. The pinned source release contains 99,441 orders; 99,421 precede the analysis cutoff.
 - **Retention is a different story:** a timing-aware model puts the repeat-purchase difference at −0.16 points (95% CI −0.45 to +0.13). That rules out booking retention savings, but it doesn't prove delivery is harmless.
 - **Where to act:** MA, CE and BA have the highest first-order late rates (18.4%, 16.5%, 13.9%). Fix operations there, then run a proper experiment on customer outcomes.
 
