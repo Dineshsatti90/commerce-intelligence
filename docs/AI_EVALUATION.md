@@ -41,13 +41,13 @@ A separate reviewer, not the gate's author, wrote 16 questions (8 answerable, 8 
 **What it found**
 
 - **3 false allows, all real gaps.** A question about customer age and household income, one comparing 2025 performance with Mercado Libre and Amazon Brazil, and one about individual delivery drivers all passed because they contain catalog words (customer, repeat, late, delivery). None of that data exists in the release.
-- **1 disputed refusal.** A question about demand-forecast accuracy (WAPE versus a baseline) was refused by the `forecast` rule. This project has no forecast, so the refusal is correct even though the question was labelled answerable. The score above keeps the reviewer's label; under the data contract it would be 13/16.
+- **Labels versus the data contract.** The reviewer labelled questions by what the project answers, not what the copilot's SQL catalog answers. Under the catalog contract, three labels change: the WAPE question (405) has no forecast to query, so its refusal is correct; but the adjusted significance question (402) and "should we book retention savings?" (406) ask for inference and a recommendation the catalog cannot provide, and the gate allowed both. On contract labels the score is 11/16, slightly worse than the reviewer's 12/16. Questions that use catalog words to ask for inference or a recommendation remain an open gap.
 
 **What changed afterwards**
 
 Four contract families were added: `demographics`, `competitor_or_market`, `individual_people` and `outside_data_window` (years outside the 2016–2018 release). Refusals now tell the user what the assistant *can* answer. All earlier sets still score 100% / 0% false refusals.
 
-**These 16 questions are now tuning data.** Any re-score on them after the fix is not a blind result, and none is claimed. The next independent number needs a new blind set. The exact questions and per-question decisions belong in `eval/blind_v4_questions.json`, committed unchanged as the reviewer wrote them.
+**These 16 questions are now tuning data.** Any re-score on them after the fix is not a blind result, and none is claimed. The next independent number needs a new blind set. The exact questions and per-question decisions are committed unchanged in [eval/blind_v4_questions.json](../eval/blind_v4_questions.json) as the reviewer wrote them.
 
 ## Current raw-model results
 | Model | Set | N | Correct route | Route + valid references | Unsupported refusal | Policy replay pass |
