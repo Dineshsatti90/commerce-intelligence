@@ -47,7 +47,7 @@ A separate reviewer, not the gate's author, wrote 16 questions (8 answerable, 8 
 
 Four contract families were added: `demographics`, `competitor_or_market`, `individual_people` and `outside_data_window` (years outside the 2016–2018 release). Refusals now tell the user what the assistant *can* answer. All earlier sets still score 100% / 0% false refusals.
 
-**These 16 questions are now tuning data.** Any re-score on them after the fix is not a blind result, and none is claimed. The next independent number needs a new blind set. The exact questions and per-question decisions belong in `eval/blind_v4_questions.json`, committed unchanged as the reviewer wrote them.
+**These 16 questions are now tuning data.** Any re-score on them after the fix is not a blind result, and none is claimed. The next independent number needs a new blind set. The exact questions and per-question decisions are committed unchanged in [eval/blind_v4_questions.json](../eval/blind_v4_questions.json) as the reviewer wrote them.
 
 ## Current raw-model results
 | Model | Set | N | Correct route | Route + valid references | Unsupported refusal | Policy replay pass |
